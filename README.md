@@ -1,7 +1,7 @@
 # offline_analysis
 This repository hosts pipelines to extract features from raw data. 
 
-** Table of Contents **
+## Table of Contents 
 - galvanic
 - cardiac
 - respiration
@@ -13,7 +13,7 @@ This repository hosts pipelines to extract features from raw data.
 - psychometrics
 - phenomenology
 
-** Installation **
+## Installation
 First, install anaconda /!\ important: use Python in version 3.6+, not version 2.7.
 
 open a terminal, navigates to the code folder, and type
@@ -25,6 +25,6 @@ pip install git+https://github.com/OpenMindInnovation/datascience_utils
 
 This will create a virtual environment and install all dependencies.
 
-** Authors ** 
+## Authors 
 Astrid Kibleur, Pierre Clisson, Raphaëlle Bertrand-Lalo
 
