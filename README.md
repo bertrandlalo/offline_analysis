@@ -28,5 +28,5 @@ pip install git+https://github.com/OpenMindInnovation/datascience_utils
 This will create a virtual environment and install all dependencies.
 
 ## Authors 
-Astrid Kibleur, Pierre Clisson, Raphaëlle Bertrand-Lalo
+Astrid Kibleur, David Ojedan Pierre Clisson, Raphaëlle Bertrand-Lalo
 
