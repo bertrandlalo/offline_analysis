@@ -19,9 +19,9 @@ First, install anaconda /!\ important: use Python in version 3.6+, not version 2
 open a terminal, navigates to the code folder, and type
 
 `conda create -n offline python=3`
-source activate offline
-conda install --yes --file requirements.txt
-pip install git+https://github.com/OpenMindInnovation/datascience_utils`
+`source activate offline`
+`conda install --yes --file requirements.txt
+`pip install git+https://github.com/OpenMindInnovation/datascience_utils`
 
 This will create a virtual environment and install all dependencies.
 
