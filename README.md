@@ -16,7 +16,7 @@ This repository hosts pipelines to extract features from raw data.
 ## Installation
 First, install anaconda /!\ important: use Python in version 3.6+, not version 2.7.
 
-open a terminal, navigates to the code folder, and type
+Open a terminal, navigates to the code folder, and type
 
 ```
 conda create -n offline python=3
