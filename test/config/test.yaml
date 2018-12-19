@@ -1,0 +1,31 @@
+inputs:
+  streams:
+  - name: unity_events
+    group: unity/events/unity_events
+  - name: nexus_signal_raw
+    group: nexus/signal/nexus_signal_raw
+    columns:
+      - F
+  query: "('2018-03-01'<date>'2018-01-01') &
+          (file_is_legacy==False) &
+          (offline_galvanic==True) &
+          (has_cardiac_coherence==True) &
+           (has_space_stress==True) &
+           (has_physio_sonification==True) &
+           (dataset.str.contains('RAKUTEN') == True ) "
+
+
+pipelines:
+  - id: extract_spectral_from_galvanic
+    module : offline_analysis.pipelines.galvanic.extract_spectral_from_galvanic
+    class:   ExtractSpectralFeature
+    params:
+      path: ./offline_analysis/pipelines/galvanic/config/test_spectral_params.yaml
+      key: spectral_params1
+    sequence_names:
+      - session_sequence
+      - space-stress_sequence
+      - cardiac-coherence_sequence
+      - physio-sonification_sequence
+
+output: ./test/tmp/galvanic_spectral

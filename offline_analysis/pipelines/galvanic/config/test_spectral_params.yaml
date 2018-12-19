@@ -1,0 +1,16 @@
+spectral_params1:
+  column_name: F
+  fs: 4.0
+  welch_params:
+    nperseg: 64
+    noverlap: 45
+    nbuffer: 90
+  band_params:
+    l_freqs:
+      - 0.0
+      - 0.04
+      - 0.15
+    h_freqs:
+      - 0.03
+      - 0.15
+      - 0.4
