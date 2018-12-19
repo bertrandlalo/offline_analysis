@@ -10,7 +10,6 @@ import os
 # unity_events = pd.read_hdf(fname, "unity/events/unity_events")
 # nexus_signal_raw = pd.read_hdf(fname, "nexus/signal/nexus_signal_raw")
 
-
 class ExtractSpectralFeature(Pipeline):
     def __init__(self, sequence_names = ['session_sequence']):
         self._modality = "galvanic"

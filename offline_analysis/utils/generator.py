@@ -3,6 +3,7 @@ import sys
 
 import importlib
 import logging
+logging.getLogger().setLevel(logging.INFO)
 
 import yaml
 import pickle
@@ -30,6 +31,17 @@ class FeaturesGenerator():
         self._now = str(datetime.now().today())
         self._summary_description = {}
         self._summary_description["meta"] = {"author": author, "date": self._now}
+        self._logger = None
+
+    def set_logger(self, output_dir = ""):
+        self._logger = logging.getLogger('FeaturesGenerator')
+        self._logger.setLevel(logging.DEBUG)
+        # create file handler which logs even debug messages
+        _fh = logging.FileHandler(os.path.join(output_dir, self._now + '_logging.log'))
+        # create formatter and add it to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        _fh.setFormatter(formatter)
+        self._logger.addHandler(_fh)
 
 
     def set_loader(self, query, streams):
@@ -43,7 +55,6 @@ class FeaturesGenerator():
         self._summary_description["loader"] = {"config_inputs": {"query":query, "streams": streams},
                                                 "report": {"nb_selected_files": len(self._loader._bnames),
                                                       "nb_computed_files": None}}
-
 
     def set_pipelines(self, config_pipelines):
         self._summary_description["pipelines"] = {}
@@ -89,36 +100,50 @@ class FeaturesGenerator():
 
 
     def run(self):
-        logging.info("Loading and running pipelines.....")
+        if self._logger is None:
+            self.set_logger()
+            self._logger.warn("Logger not set. Log output will be saved in current directory.")
+
+        self._logger.info("Loading and running pipelines")
         global_tic = time.perf_counter()
         timit_dict = {}
         datasets_flat_stats_list = []
         # while self._loader.load_next(self._streams_params):
         for bname in tqdm(self._loader._bnames):
-            # print(bname)
-            self._loader.load_dataset(bname, self._streams_params)
-            if self._loader._data:
-                dataset_flat_stats_list = []
-                index = self._loader._bname
-                for pipeline in self._pipelines:
-                    if pipeline._id not in timit_dict:
-                        timit_dict[pipeline._id]=[]
-                    pipeline.set_data_from_loader(self._loader)
-                    pipeline.set_sequence_times()
-                    # TODO: fix timit
-                    local_tic = time.perf_counter()
-                    flat_stats = pipeline.run()
-                    local_toc = time.process_time()
-                    timit_dict[pipeline._id].append(local_toc-local_tic)
-                    flat_stats.index = [index]
-                    dataset_flat_stats_list.append(flat_stats)
-                dataset_flat_stats_df = pd.concat(dataset_flat_stats_list, axis=1, sort=True)
-                datasets_flat_stats_list.append(dataset_flat_stats_df)
+            # TODO: exit it taking too long
+            # TODO: warn and keep log if exception
+            try:
+                self._logger.debug("Analyzing dataset: " + bname)
+                self._loader.load_dataset(bname, self._streams_params)
+                if self._loader._data:
+                    dataset_flat_stats_list = []
+                    index = self._loader._bname
+                    for pipeline in self._pipelines:
+                        if pipeline._id not in timit_dict:
+                            timit_dict[pipeline._id]=[]
+                        pipeline.set_data_from_loader(self._loader)
+                        pipeline.set_sequence_times()
+                        # TODO: fix timit
+                        local_tic = time.perf_counter()
+                        flat_stats = pipeline.run()
+                        local_toc = time.process_time()
+                        timit_dict[pipeline._id].append(local_toc-local_tic)
+                        flat_stats.index = [index]
+                        dataset_flat_stats_list.append(flat_stats)
+                    dataset_flat_stats_df = pd.concat(dataset_flat_stats_list, axis=1, sort=True)
+                    datasets_flat_stats_list.append(dataset_flat_stats_df)
+            except Exception as exc:
+                logging.error("Failed to extract feature from {bname}".format(bname=bname), exc)
         global_toc = time.process_time()
-        self._summary_description["meta"]["timit"] = {**{"all": (global_toc-global_tic)/60}, **{k:np.mean(v)/60 for (k,v) in timit_dict.items()}}
+        self._summary_description["meta"]["timit"] = {**{"all": (global_toc-global_tic)/60}, **{k:float(np.mean(v)/60) for (k,v) in timit_dict.items()}}
+
+        self._summary_description["meta"]["nb_col"] = pd.concat(datasets_flat_stats_list, axis=0).shape[1]
+        self._summary_description["meta"]["nb_row"] = pd.concat(datasets_flat_stats_list, axis=0).shape[0]
+
+        self._summary_description["loader"]["report"]["nb_computed_files"] = pd.concat(datasets_flat_stats_list, axis=0).shape[0]
 
         self.output_features = pd.concat(datasets_flat_stats_list, axis=0)
-        self._summary_description["loader"]["report"]["nb_computed_files"] = len(self.output_features)
+
 
         return self.output_features
 
@@ -136,4 +161,4 @@ class FeaturesGenerator():
         # save matrice of features in pickle
         with open(os.path.join(output_dir, self._now + "_features.pickle"), 'wb') as outfile:
             pickle.dump(self.output_features, outfile, protocol=pickle.HIGHEST_PROTOCOL)
-        logging.info("Saving Description and Features in {output_dir} .....".format(output_dir=output_dir))
+        logging.info("Saving Description and Features in {output_dir}".format(output_dir=output_dir))
