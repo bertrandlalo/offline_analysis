@@ -31,6 +31,12 @@ This will :
     3) concatenate features horizontaly and datasets vertically
 3) save a feature matrice of size (nb_datasets x nb_features) into .pickle & .csv + a description file in .yml 
 
+## Output
+The outputs are: 
+- **yyy-mm-dd-ts_logging.log** : containing the log at DEBUG level 
+- **yyy-mm-dd-ts_features.(pickle/csv)** : containing a dataframe of nb_datasets x nb_features
+- **yyy-mm-dd-ts_readme.yml** : containing the descriptions of the features 
+
 ## Table of Contents 
 ### helpers
 ### pipelines

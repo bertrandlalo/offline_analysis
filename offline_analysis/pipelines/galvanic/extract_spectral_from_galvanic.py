@@ -9,9 +9,10 @@ import os
 # fname = '/Users/raph/OMIND_SERVER/DATA/DATA_OMI/raw_hdf5/data_2018-03-26.13.12.42_507dd660ac2c6ec9364b44644c9bdb2f775c5ac0f6529ee74f9205c7309bde3a.hdf5'
 # unity_events = pd.read_hdf(fname, "unity/events/unity_events")
 # nexus_signal_raw = pd.read_hdf(fname, "nexus/signal/nexus_signal_raw")
+import logging
 
 class ExtractSpectralFeature(Pipeline):
-    def __init__(self, sequence_names = ['session_sequence']):
+    def __init__(self, sequence_names = ['session_sequence'], logger= None):
         self._modality = "galvanic"
         self._type = "physio"
         self._sequence_names = sequence_names
@@ -23,7 +24,10 @@ class ExtractSpectralFeature(Pipeline):
                               "relative power extracted using welch method between 0.15 and 0.4"]
 
         self._description = {n:d for (n,d) in zip(self._feature_names, self._feature_desc )}
-
+        if logger is None:
+            self._logger = logging.getLogger(self.__class__.__name__)
+        else:
+            self._logger = logger
 
     def set_params(self, column_name, fs, band_params, welch_params):
         self._column_name = column_name
@@ -54,7 +58,7 @@ class ExtractSpectralFeature(Pipeline):
         self.sequence_names = general.intersect(sequence_names, subsequences_list)
         if len(self.sequence_names)<len(sequence_names):
             missing_sequences = [a for a in sequence_names if a not in self.sequence_names]
-            warn("could not extract all sequences from unity_events, missing {missing_sequences}".format(missing_sequences=str(missing_sequences)))
+            self._logger.warnings("could not extract all sequences from unity_events, missing {missing_sequences}".format(missing_sequences=str(missing_sequences)))
         self.sequence_times = {}
         for sequence_name in self.sequence_names:
             times = unity.extract_unity_subsequence_times(unity_events, sequence_name)

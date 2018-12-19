@@ -36,8 +36,8 @@ def main(debug=False):
 
     generator = FeaturesGenerator(server_path=server, author = author)
     generator.set_loader(**config["inputs"])
-    generator.set_pipelines(config["pipelines"])
     generator.set_logger(config["output"])
+    generator.set_pipelines(config["pipelines"])
     _ = generator.run()
     generator.save(config["output"])
     logging.info("Done")

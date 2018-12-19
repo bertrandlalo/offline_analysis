@@ -34,14 +34,17 @@ class FeaturesGenerator():
         self._logger = None
 
     def set_logger(self, output_dir = ""):
-        self._logger = logging.getLogger('FeaturesGenerator')
-        self._logger.setLevel(logging.DEBUG)
-        # create file handler which logs even debug messages
-        _fh = logging.FileHandler(os.path.join(output_dir, self._now + '_logging.log'))
-        # create formatter and add it to the handlers
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        _fh.setFormatter(formatter)
-        self._logger.addHandler(_fh)
+        if self._logger is None:
+            self._logger = logging.getLogger('FeaturesGenerator')
+            self._logger.setLevel(logging.DEBUG)
+            # create file handler which logs even debug messages
+            _fh = logging.FileHandler(os.path.join(output_dir, self._now + '_logging.log'))
+            # create formatter and add it to the handlers
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            _fh.setFormatter(formatter)
+            self._logger.addHandler(_fh)
+        else:
+            self._logger.warnings("Logger has already been set.")
 
 
     def set_loader(self, query, streams):
@@ -57,6 +60,10 @@ class FeaturesGenerator():
                                                       "nb_computed_files": None}}
 
     def set_pipelines(self, config_pipelines):
+        if self._logger is None:
+            self.set_logger()
+            self._logger.warnings("Logger should be set before pipelines. Log output will be saved in current directory.")
+
         self._summary_description["pipelines"] = {}
         self._pipelines = []
         for pipeline_config in config_pipelines:
@@ -68,7 +75,7 @@ class FeaturesGenerator():
                 sequence_names = ['session_sequence']
             else:
                 sequence_names = pipeline_config['sequence_names']
-            pipeline = c(sequence_names)
+            pipeline = c(sequence_names, self._logger)
             pipeline._id = pipeline_id
             if not 'params' in pipeline_config:
                 pipeline_params = {}
@@ -98,12 +105,7 @@ class FeaturesGenerator():
             # add description
             self._summary_description["pipelines"][pipeline._id] = {"description": pipeline._description, "params": pipeline_params}
 
-
     def run(self):
-        if self._logger is None:
-            self.set_logger()
-            self._logger.warn("Logger not set. Log output will be saved in current directory.")
-
         self._logger.info("Loading and running pipelines")
         global_tic = time.perf_counter()
         timit_dict = {}
